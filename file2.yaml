@@ -1,0 +1,20 @@
+domain:
+ - devops
+ - devsecops
+tutorial:
+  - yaml:
+      name: "YAML1 Ain't Markup Language" #string [literal]
+      type: awesome #string [literal]
+      born: 2001 #number [literal]
+  - json:
+      name: JavaScript Object Notation #string [literal]
+      type: great #string [literal]
+      born: 2001 #number [literal]
+  - xml:
+      name: Extensible Markup Language #string [literal]
+      type: good2 #string [literal]
+      born: 1996 #number [literal]
+author: omkarbirade
+field1: check
+field2: check
+published: true
