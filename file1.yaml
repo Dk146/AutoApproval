@@ -15,4 +15,5 @@ tutorial:
       type: good #string [literal]
       born: 1996 #number [literal]
 author: omkarbirade
+field3: check
 published: true
