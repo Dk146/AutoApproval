@@ -2,44 +2,60 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"os"
 	"reflect"
+	"strings"
 
 	"gopkg.in/yaml.v2"
 )
 
 func main() {
-	diff := compareFile("file1.yaml", "file2.yaml")
-	whiteList, _ := readLines("whitelist.txt")
-	fmt.Println(whiteList)
-	fmt.Println(diff)
-	result := isApprove(diff, whiteList)
-	fmt.Println(result)
+	// raw_pull_url, raw_origin_url := getPullAndOrigin("https://api.github.com/repos/Dk146/AutoApproval/pulls/1/files")
+	// fmt.Println(raw_origin_url)
+	// fmt.Println(raw_pull_url)
+
+	// diff := getDiffContents(raw_pull_url, raw_origin_url)
+	// whiteList, _ := readLines("whitelist.txt")
+
+	// fmt.Println(whiteList)
+	// fmt.Println(diff)
+
+	// result := isContain(diff, whiteList)
+	// fmt.Println(result)
+
+	res := isApprove("https://api.github.com/repos/Dk146/AutoApproval/pulls/1/files")
+	fmt.Println(res)
 }
 
-func compareFile(path1, path2 string) []string {
-	yamlFile1, _ := os.ReadFile(path1)
-	yamlFile2, _ := os.ReadFile(path2)
+func isApprove(url string) bool {
+	raw_pull_url, raw_origin_url := getPullAndOrigin(url)
+	fmt.Println(raw_origin_url)
+	fmt.Println(raw_pull_url)
 
-	var body1 interface{}
-	var body2 interface{}
+	diff := getDiffContents(raw_pull_url, raw_origin_url)
+	whiteList, _ := readLines("whitelist.txt")
 
-	if err := yaml.Unmarshal([]byte(yamlFile1), &body1); err != nil {
-		panic(err)
-	}
-	if err := yaml.Unmarshal([]byte(yamlFile2), &body2); err != nil {
-		panic(err)
-	}
+	fmt.Println(whiteList)
+	fmt.Println(diff)
 
-	map1, _ := convert(body1).(map[string]interface{})
-	map2, _ := convert(body2).(map[string]interface{})
+	result := isContain(diff, whiteList)
+	fmt.Println(result)
+	return result
+}
+
+func getDiffContents(raw_pull, raw_origin string) []string {
+	map_pull := getFileContent(raw_pull)
+	map_origin := getFileContent(raw_origin)
 
 	diff := make([]string, 0)
 
-	for key1 := range map1 {
-		if _, ok := map2[key1]; ok {
-			if !reflect.DeepEqual(map1[key1], map2[key1]) {
+	for key1 := range map_pull {
+		if _, ok := map_origin[key1]; ok {
+			if !reflect.DeepEqual(map_pull[key1], map_origin[key1]) {
 				diff = append(diff, key1)
 			}
 		} else {
@@ -47,13 +63,24 @@ func compareFile(path1, path2 string) []string {
 		}
 	}
 
-	for key2 := range map2 {
-		if _, ok := map1[key2]; !ok {
+	for key2 := range map_origin {
+		if _, ok := map_pull[key2]; !ok {
 			diff = append(diff, key2)
 		}
 	}
 
 	return diff
+}
+
+func getFileContent(url string) map[string]interface{} {
+	resp, _ := http.Get(url)
+	body, _ := ioutil.ReadAll(resp.Body)
+	var content interface{}
+	if err := yaml.Unmarshal([]byte(body), &content); err != nil {
+		panic(err)
+	}
+	map_content := convert(content).(map[string]interface{})
+	return map_content
 }
 
 func convert(i interface{}) interface{} {
@@ -87,7 +114,7 @@ func readLines(path string) ([]string, error) {
 	return lines, scanner.Err()
 }
 
-func isApprove(diff, whiteList []string) bool {
+func isContain(diff, whiteList []string) bool {
 	check := false
 	for _, e1 := range diff {
 		check = false
@@ -101,4 +128,41 @@ func isApprove(diff, whiteList []string) bool {
 		}
 	}
 	return true
+}
+
+func getValueFromArrayJSON(body []byte, key string) string {
+	var raw []map[string]interface{}
+	if err := json.Unmarshal(body, &raw); err != nil {
+		panic(err)
+	}
+	res := raw[0][key].(string)
+	return res
+}
+
+func getValueFromJSON(body []byte, key string, key1 string) string {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(body, &raw); err != nil {
+		panic(err)
+	}
+	map1 := raw[key].(map[string]interface{})
+	res := map1[key1].(string)
+	return res
+}
+
+func getPullAndOrigin(url string) (string, string) {
+	resp, _ := http.Get(url)
+	body, _ := ioutil.ReadAll(resp.Body)
+
+	raw_pull_url := getValueFromArrayJSON(body, "raw_url")
+	contents_url := getValueFromArrayJSON(body, "contents_url")
+
+	s := strings.Split(contents_url, "?")
+
+	content_origin, _ := http.Get(s[0])
+	body_origin, _ := ioutil.ReadAll(content_origin.Body)
+
+	origin_url := getValueFromJSON(body_origin, "_links", "html")
+	raw_origin_url := strings.Replace(origin_url, "blob", "raw", 1)
+
+	return raw_pull_url, raw_origin_url
 }
