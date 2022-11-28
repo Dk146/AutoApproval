@@ -14,19 +14,6 @@ import (
 )
 
 func main() {
-	// raw_pull_url, raw_origin_url := getPullAndOrigin("https://api.github.com/repos/Dk146/AutoApproval/pulls/1/files")
-	// fmt.Println(raw_origin_url)
-	// fmt.Println(raw_pull_url)
-
-	// diff := getDiffContents(raw_pull_url, raw_origin_url)
-	// whiteList, _ := readLines("whitelist.txt")
-
-	// fmt.Println(whiteList)
-	// fmt.Println(diff)
-
-	// result := isContain(diff, whiteList)
-	// fmt.Println(result)
-
 	res := isApprove("https://api.github.com/repos/Dk146/AutoApproval/pulls/1/files")
 	fmt.Println(res)
 }
