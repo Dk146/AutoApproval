@@ -10,10 +10,12 @@ tutorial:
       name: JavaScript Object Notation #string [literal]
       type: great #string [literal]
       born: 2001 #number [literal]
+      field5: check
   - xml:
       name: Extensible Markup Language #string [literal]
       type: good #string [literal]
       born: 1996 #number [literal]
 author: omkarbirade
 field3: check
+field4: check
 published: true
