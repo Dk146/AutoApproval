@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	res := isApprove("https://api.github.com/repos/Dk146/AutoApproval/pulls/1/files")
+	res := isApprove("https://api.github.com/repos/Dk146/AutoApproval/pulls/4/files")
 	fmt.Println(res)
 }
 
