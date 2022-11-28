@@ -30,7 +30,6 @@ func isApprove(url string) bool {
 	fmt.Println(diff)
 
 	result := isContain(diff, whiteList)
-	fmt.Println(result)
 	return result
 }
 
